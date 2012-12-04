@@ -133,6 +133,7 @@ class FakeIOSession(object):
         self._regexes.append(regex)
 
     def create_file(self, filepath, mode='r', content=None):
+        filepath = _normalize_path(filepath)
         fileobj = FakeIOFile(filepath, mode, content)
         self._mappings[filepath] = fileobj
         return fileobj
@@ -144,12 +145,13 @@ class FakeIOSession(object):
     def _fake_open(self, filepath, mode='r', buffering=-1):
         LOGGER.info("Open file %s in mode %s with buffering %d" %
                     (filepath, mode, buffering))
-        if filepath in self._mappings:
-            return self._mappings[filepath].open(mode)
+        normalized_path = _normalize_path(filepath)
+        if normalized_path in self._mappings:
+            return self._mappings[normalized_path].open(mode)
         for regex in self._regexes:
-            if regex.match(filepath):
-                self.create_file(filepath, 'rw')
-                return self._mappings[filepath].open(mode)
+            if regex.match(normalized_path):
+                self.create_file(normalized_path, 'rw')
+                return self._mappings[normalized_path].open(mode)
         return self._saved_open(filepath, mode, buffering)
 
     def __enter__(self):
@@ -164,3 +166,5 @@ class FakeIOSession(object):
         __builtin__.open = self._saved_open
         self._saved_open = None
 
+def _normalize_path(path):
+    return path.replace("\\", "/")
