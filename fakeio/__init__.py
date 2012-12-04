@@ -1,7 +1,5 @@
 from __future__ import (unicode_literals, print_function, absolute_import)
-__all__ = [
-    'FakeIOSession', 'ProgrammingException',
-    ]
+__all__ = ['FakeIOSession']
 
 import __builtin__
 import logging
