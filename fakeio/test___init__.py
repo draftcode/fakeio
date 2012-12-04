@@ -4,6 +4,7 @@ from __future__ import (unicode_literals, print_function, absolute_import)
 import unittest
 import fakeio
 import re
+import __builtin__
 
 class TestFakeIOSession(unittest.TestCase):
 
@@ -136,6 +137,53 @@ class TestFakeIOSession(unittest.TestCase):
             fileobj.close()
         self.assertEqual(writable_fileobj.getvalue(), content)
 
+    def test_should_match_filepath_with_normalized_form(self):
+        fakeio_session = fakeio.FakeIOSession()
+        content = "something"
+
+        fakeio_session.create_file("/memfile\\something.txt", 'r', content)
+        with fakeio_session:
+            # Assert not raise IOError
+            open("/memfile/something.txt", 'r')
+
+    def test_should_normalize_filepath_when_open(self):
+        fakeio_session = fakeio.FakeIOSession()
+        content = "something"
+
+        fakeio_session.create_file("/memfile/something.txt", 'r', content)
+        with fakeio_session:
+            # Assert not raise IOError
+            open("/memfile\\something.txt", 'r')
+
+    def test_should_not_normalized_not_matched_path(self):
+        filepath = "/memfile\\something.txt"
+        class OpenMock(object):
+            def __init__(self):
+                self.called = None
+
+            def __call__(self, f, m, b):
+                self.called = f
+        open_mock = OpenMock()
+        saved_open = __builtin__.open
+        try:
+            __builtin__.open = open_mock
+
+            filepath = "/memfile\\something.txt"
+            fakeio_session = fakeio.FakeIOSession()
+            with fakeio_session:
+                open(filepath)
+            self.assertEqual(filepath, open_mock.called)
+        finally:
+            __builtin__.open = saved_open
+
+    def test_should_match_regex_normalized_filepath(self):
+        fakeio_session = fakeio.FakeIOSession()
+
+        fakeio_session.intercept_regex(re.compile("^/memfile/"))
+        with fakeio_session:
+            # Assert not raise IOError
+            open("/memfile\\something.txt", 'w')
+
 class TestFakeIOFile(unittest.TestCase):
 
     def test_should_getvalue(self):
@@ -193,6 +241,19 @@ class TestFakeIOFile(unittest.TestCase):
         with fileobj as fileobj:
             pass
         self.assertTrue(fileobj.closed)
+
+class TestNormalizePath(unittest.TestCase):
+    def test_should_normalize_windows_path(self):
+        normalized = fakeio._normalize_path("C:\\somepath\\something.txt")
+        self.assertEqual(normalized, "C:/somepath/something.txt")
+
+    def test_should_normalize_unix_path(self):
+        normalized = fakeio._normalize_path("/somepath/something.txt")
+        self.assertEqual(normalized, "/somepath/something.txt")
+
+    def test_should_normalize_mixture(self):
+        normalized = fakeio._normalize_path("C:\\somepath/something.txt")
+        self.assertEqual(normalized, "C:/somepath/something.txt")
 
 if __name__ == '__main__':
     unittest.main()
