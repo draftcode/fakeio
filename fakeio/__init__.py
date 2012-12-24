@@ -24,6 +24,9 @@ class ReadOpenedFakeIOFile(object):
             if not hasattr(self, attr):
                 setattr(self, attr, getattr(self._content, attr))
 
+    def __iter__(self):
+        return self._content.__iter__()
+
     @property
     def name(self):
         return self._filepath
@@ -56,6 +59,9 @@ class WriteOpenedFakeIOFile(object):
         for attr in _FILE_ATTRS:
             if not hasattr(self, attr):
                 setattr(self, attr, getattr(self._content, attr))
+
+    def __iter__(self):
+        return self._content.__iter__()
 
     @property
     def name(self):

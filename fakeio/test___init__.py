@@ -235,12 +235,18 @@ class TestFakeIOFile(unittest.TestCase):
         with self.assertRaises(ValueError):
             file.open('w')
 
-    def test_shoul_close_when_exit(self):
+    def test_should_close_when_exit(self):
         file = fakeio.FakeIOFile("/memfile/something.txt", "rw", '')
         fileobj = file.open('r')
         with fileobj as fileobj:
             pass
         self.assertTrue(fileobj.closed)
+
+    def test_should_iteratable(self):
+        file = fakeio.FakeIOFile("/memfile/something.txt", "rw", 'abc')
+        fileobj = file.open('r')
+        for line in fileobj:
+            self.assertEqual(line, 'abc')
 
 class TestNormalizePath(unittest.TestCase):
     def test_should_normalize_windows_path(self):
