@@ -6,7 +6,7 @@ import fakeio
 import re
 import __builtin__
 
-class TestFakeIOSession(unittest.TestCase):
+class FakeIOSessionTest(unittest.TestCase):
 
     def test_should_map_when_with_statement(self):
         fakeio_session = fakeio.FakeIOSession()
@@ -184,7 +184,7 @@ class TestFakeIOSession(unittest.TestCase):
             # Assert not raise IOError
             open("/memfile\\something.txt", 'w')
 
-class TestFakeIOFile(unittest.TestCase):
+class FakeIOFileTest(unittest.TestCase):
 
     def test_should_getvalue(self):
         content = "something"
@@ -248,7 +248,8 @@ class TestFakeIOFile(unittest.TestCase):
         for line in fileobj:
             self.assertEqual(line, 'abc')
 
-class TestNormalizePath(unittest.TestCase):
+class NormalizePathTest(unittest.TestCase):
+
     def test_should_normalize_windows_path(self):
         normalized = fakeio._normalize_path("C:\\somepath\\something.txt")
         self.assertEqual(normalized, "C:/somepath/something.txt")

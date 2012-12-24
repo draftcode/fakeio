@@ -1,7 +1,7 @@
 FakeIO: Intercept open
 ======================
 
-FakeIO is a library for testing functions that will do open a file.
+FakeIO is a library for testing functions that will open a file.
 
 .. code:: python
 
@@ -19,8 +19,8 @@ written to receive a file-like object instead of a file path. This will enable
 you to test with in-memory file-like object like the one that StringIO
 provides. In spite of that, sometimes you want to pass a file path: when you
 write acceptance tests or when you write a program that creates files under
-some directory. This library lets you intercept calls to the open built-in
-function and replace the return value with StringIO object.
+some directory. This library lets you intercept calls to the ``open`` built-in
+function and replace its return value with a StringIO object.
 
 This library is not intended to replace StringIO. You should use StringIO as
 possible as you can.
@@ -28,9 +28,9 @@ possible as you can.
 Example use case
 ----------------
 
-Assume that you want to write a test for the function that creates an error
-log only if an error happens, and error log filename can be determined only
-after the error occurs. You can write this function like this:
+Assume that you want to write some tests for the function that creates an
+error log only if an error happens, and the error log filename can be
+determined only after the error occurs. You can write this function like this:
 
 .. code:: python
 
@@ -43,16 +43,16 @@ after the error occurs. You can write this function like this:
             with open(filepath, 'w') as f:
                 f.write(repr(e))
 
-Things that you want to check about this function is here:
+Things that you want to check about this function are here:
 
 1. The argument ``target`` should be called.
 2. If the call to ``target`` does not raise any exception, any file should not
    be created.
-3. If the call to ``target`` raise an exception, a file is created under the
-   ``dirpath`` directory.
-4. The created file is created with ``gen_filename`` and ``gen_filename`` is
-   called properly.
-5. The created file's content is same as ``repr(e)``.
+3. If the call to ``target`` raise an exception, a file should be created
+   under the ``dirpath`` directory.
+4. The created file should be created under the name which ``gen_filename``
+   returns, and ``gen_filename`` should be called properly.
+5. The created file's content should be same as ``repr(e)``.
 
 You can write these tests like this:
 
