@@ -4,9 +4,32 @@ from __future__ import (unicode_literals, print_function, absolute_import)
 import unittest
 import fakeio
 import re
+import io
 import __builtin__
 
 class FakeIOSessionTest(unittest.TestCase):
+
+    def test_maps_io_open_when_entering_with_statement(self):
+        fakeio_session = fakeio.FakeIOSession()
+        filepath = "/memfile/something.txt"
+        content = "something"
+
+        fakeio_session.create_file(filepath, 'r', content)
+        with self.assertRaises(IOError):
+            io.open(filepath, 'r')
+        with fakeio_session:
+            self.assertEqual(io.open(filepath, 'r').read(), content)
+
+    def test_unmaps_io_open_when_exiting_with_statement(self):
+        fakeio_session = fakeio.FakeIOSession()
+        filepath = "/memfile/something.txt"
+        content = "something"
+
+        fakeio_session.create_file(filepath, 'r', content)
+        with fakeio_session:
+            pass
+        with self.assertRaises(IOError):
+            io.open(filepath, 'r')
 
     def test_should_map_when_with_statement(self):
         fakeio_session = fakeio.FakeIOSession()
@@ -247,6 +270,24 @@ class FakeIOFileTest(unittest.TestCase):
         fileobj = file.open('r')
         for line in fileobj:
             self.assertEqual(line, 'abc')
+
+    def test_is_constructed_with_string(self):
+        content = "あいうえお".encode('cp932')
+        file = fakeio.FakeIOFile("/memfile/something.txt", "rw", content)
+        fileobj = file.open("r")
+        self.assertIsInstance(fileobj.read(), str)
+
+    def test_is_constructed_with_unicode(self):
+        content = "あいうえお"
+        file = fakeio.FakeIOFile("/memfile/something.txt", "rw", content, 'utf8')
+        fileobj = file.open("r")
+        self.assertIsInstance(fileobj.read(), str)
+
+    def test_io_open_opens_file_in_text_mode(self):
+        content = "あいうえお"
+        file = fakeio.FakeIOFile("/memfile/something.txt", "rw", content, 'utf8')
+        fileobj = file.io_open("r", 'utf8')
+        self.assertIsInstance(fileobj.read(), unicode)
 
 class NormalizePathTest(unittest.TestCase):
 
